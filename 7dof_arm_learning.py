@@ -189,7 +189,7 @@ def train_agent():
 			# Get the current state
 			state = env.get_state()
 			# Select an action using the policy
-			action = agent.select_action(state) * 10  # Scale up action magnitudes
+			action = agent.select_action(state)  # Scale up action magnitudes
 			# Apply the action to the environment
 			env.apply_action(action)
 
@@ -197,7 +197,7 @@ def train_agent():
 			target_position = [0, 0, 0.5]
 			end_effector_state = p.getLinkState(env.robotId, env.num_joints - 1)[0]
 			distance_to_target = np.linalg.norm(np.array(target_position) - np.array(end_effector_state))
-			reward = -distance_to_target * 10  # Amplify the reward signal
+			reward = -distance_to_target  # Amplify the reward signal
 			episode_reward += reward
 
 			# Get the value of the current state from the critic
@@ -212,10 +212,15 @@ def train_agent():
 		# Train the agent after each episode
 		agent.train(states, actions, rewards, values)
 		print(f"Episode {episode + 1}: Total Reward = {episode_reward}")
-		print("actions: ", actions)
+		print("actions snapshot: ", [actions[:10], actions[100:110], actions[180:190]])
+	if (episode + 1) % 10 == 0:  # Save every 10 episodes
+	  torch.save(agent.policy.state_dict(), '/content/drive/MyDrive/ppo_checkpoint.pth')
+
 
 	# Save the trained model
-	agent.save_model("trained_ppo_model.pth")
+	# agent.save_model("trained_ppo_model.pth")
+	# Save model
+	torch.save(agent.policy.state_dict(), '/content/drive/MyDrive/trained_ppo_model.pth')
 	env.disconnect()
 
 def execute_trained_agent():
